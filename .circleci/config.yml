@@ -74,13 +74,17 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-test]
       - run:
           name: Run FrontEnd test
           command: |
              cd frontend
              npm install
              npm run test
+      - save_cache:
+          paths: [frontend/test]
+          key: frontend-test
+
 
       # Checkout code from git
       # Restore from cache
@@ -100,7 +104,10 @@ jobs:
              cd backend
              npm install
              npm run test
-      # Checkout code from git
+      - save_cache:
+          paths: [backend/test]
+          key: backend-test
+# Checkout code from git
       # Restore from cache
       # Your job code here
             
@@ -111,14 +118,18 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [frontend-scan]
       - run:
           name: Run frontend scan
           command: |
               cd frontend
               npm install
+              npm audit fix --audit-level=critical --force
               npm audit --audit-level=critical
-      # Checkout code from git
+      - save_cache:
+          paths: [frontend/scan]
+          key: frontend-scan
+# Checkout code from git
       # Restore from cache
       # Your job code here
 
@@ -129,14 +140,18 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build]
+          keys: [backend-scan]
       - run:
-          name: Run frontend scan
+          name: Run Backend scan
           command: |
               cd backend
               npm install
+              npm audit fix --audit-level=critical --force
               npm audit --audit-level=critical
-      # Checkout code from git
+      - save_cache:
+          paths: [backend/scan]
+          key: backend-scan
+# Checkout code from git
       # Restore from cache
       # Your job code here
 
