@@ -1,18 +1,20 @@
 version: 2.1
 orbs: 
   slack: circleci/slack@4.8.3
-# commands:
-#   destroy-environment:
-#     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-#     parameters:
-#       # Add parameter here   
-#     steps:
-#       - run:
-#           name: Destroy environments
-#           when: on_fail
-#           command: |
-#             # Your code here
-#             exit 1
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    parameters:
+      ID:
+        Description: Unique identifier.
+        Type: String   
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+              aws cloudformation delete-stack \
+              --stack-name "devopstest-${ID}" \
 
 #   revert-migrations:
 #     description: Revert the last migration if successfully run in the current workflow.
@@ -108,10 +110,7 @@ jobs:
       - save_cache:
           paths: [backend/test]
           key: backend-test
-# Checkout code from git
-      # Restore from cache
-      # Your job code here
-            
+         
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -130,9 +129,6 @@ jobs:
       - save_cache:
           paths: [frontend/scan]
           key: frontend-scan
-# Checkout code from git
-      # Restore from cache
-      # Your job code here
 
   scan-backend:
     docker:
@@ -159,7 +155,6 @@ jobs:
           event: pass
           template: success_tagged_deploy_1
 
-
   notify:
     docker:
       - image: 'cimg/base:stable'
@@ -182,41 +177,48 @@ jobs:
             }
           event: always
           
-#   deploy-infrastructure:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#       - image: amazon/aws-cli:latest
-#     steps:
-#       # Checkout code from git
-#       - checkout
-#       - run:
-#           name: Ensure back-end infrastructure exists
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/backend.yml \
-#               --stack-name "devopstest-${CIRCLE_WORKFLOW_ID:0:7}" \
-#               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
-#               --tags project=udacity  
-#               exit 1
-#       - run:
-#           name: Ensure front-end infrastructure exist
-#           command: |
-#             aws cloudformation deploy \
-#               --template-file .circleci/files/frontend.yml \
-#               #--tags project=your-tag \
-#               # --stack-name "your front-end stack name with workflow id" \
-#               # --parameter-overrides ID="your workflow id"  
-#               exit 1
-#       - run:
-#           name: Add back-end ip to ansible inventory
-#           command: |
-#             # Your code here
-#             exit 1
-#       - persist_to_workspace:
-#           root: ~/
-#           paths:
-#             - project/.circleci/ansible/inventory.txt
-#       # Here's where you will add some code to rollback on failure      
+  deploy-infrastructure:
+    docker:
+      # Docker image here that supports AWS CLI
+      - image: amazon/aws-cli:latest
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: install dependencies
+          command: |
+              sudo apt-get update -y
+              sudo apt-get install -y tar gzip
+      - run:
+          name: Ensure back-end infrastructure exists
+          command: |
+              aws cloudformation deploy \
+              --template-file .circleci/files/backend.yml \
+              --stack-name "devopstest-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udacity  
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --stack-name "devopstest-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udacity
+      - run:
+          name: Add back-end ip to ansible inventory
+          command: |
+            aws ec2 describe-instances \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text >> inventory
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      - destroy-environment:
+          when: on_fail
+          ID: ${CIRCLE_WORKFLOW_ID:0:7}
+      # Here's where you will add some code to rollback on failure      
 
 #   configure-infrastructure:
 #     docker:
@@ -369,11 +371,11 @@ workflows:
           context: DevOps
       - scan-frontend:
           requires: [build-frontend]
-          # - deploy-infrastructure:
-      #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-      #     filters:
-      #       branches:
-      #         only: [test-feature-branch]
+      - deploy-infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: [test-feature-branch]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       # - run-migrations:
