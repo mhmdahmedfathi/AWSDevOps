@@ -187,7 +187,7 @@ jobs:
           name: install dependencies
           command: |
               sudo apt update
-              sudo apt install tar gzip aws-cli
+              sudo apt install tar gzip awscli
       - run:
           name: Ensure back-end infrastructure exists
           command: |
