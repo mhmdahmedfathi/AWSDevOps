@@ -152,6 +152,9 @@ jobs:
       - save_cache:
           paths: [backend/scan]
           key: backend-scan
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
 
 
 
@@ -356,6 +359,7 @@ workflows:
           requires: [build-backend]
       - scan-backend:
           requires: [build-backend]
+          context: DevOps
       - scan-frontend:
           requires: [build-frontend]
       - notify:
