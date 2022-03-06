@@ -359,7 +359,7 @@ workflows:
       - scan-frontend:
           requires: [build-frontend]
       - notify:
-          context: slack-secrets
+          context: DevOps
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       #     filters:
