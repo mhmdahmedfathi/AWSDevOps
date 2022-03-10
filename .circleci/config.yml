@@ -193,7 +193,7 @@ jobs:
           command: |
               aws cloudformation deploy \
                 --template-file .circleci/files/backend.yml \
-                --stack-name "devopstest-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --stack-name "devopstest-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
                 --tags project=udacity  
       - run:
@@ -201,7 +201,7 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --stack-name "devopstest-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --stack-name "devopstest-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udacity
       - run:
