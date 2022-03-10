@@ -192,10 +192,10 @@ jobs:
           name: Ensure back-end infrastructure exists
           command: |
               aws cloudformation deploy \
-              --template-file .circleci/files/backend.yml \
-              --stack-name "devopstest-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
-              --tags project=udacity1  
+                --template-file .circleci/files/backend.yml \
+                --stack-name "devopstest-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+                --tags project=udacity  
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -218,24 +218,36 @@ jobs:
           ID: ${CIRCLE_WORKFLOW_ID:0:7}
       # Here's where you will add some code to rollback on failure      
 
-#   configure-infrastructure:
-#     docker:
-#       # Docker image here that supports Ansible
-#     steps:
-#       # Checkout code from git
-#       # Add ssh keys with fingerprint
-#       # attach workspace
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # Your code here
-#             exit 1
-#       - run:
-#           name: Configure server
-#           command: |
-#             # Your code here
-#             exit 1
-#       # Here's where you will add some code to rollback on failure      
+  configure-infrastructure:
+    docker:
+          - image: cimg/base:2022.03
+      # Docker image here that supports Ansible
+    steps:
+      - checkout
+      # Checkout code from git
+      # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints:
+            - "30:d9:0c:23:56:89:d1:d7:86:3e:2b:20:c3:0a:cd:33:ed:fc:ac:a2"
+      # attach workspace
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/.circleci/ansible/inventory.txt
+      - run:
+          name: install dependencies
+          command: |
+              sudo apt update
+              sudo apt install tar gzip awscli
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy-environment:
+          ID: ${CIRCLE_WORKFLOW_ID:0:7}
+     
+      # Here's where you will add some code to rollback on failure      
 
 #   run-migrations:
 #     docker:
