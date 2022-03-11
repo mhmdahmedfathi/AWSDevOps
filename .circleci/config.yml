@@ -207,6 +207,7 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
+            cd .circleci/ansible
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> inventory
@@ -242,7 +243,7 @@ jobs:
       - run:
           name: Configure server
           command: |
-            cd ansible
+            cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
           ID: ${CIRCLE_WORKFLOW_ID:0:7}
