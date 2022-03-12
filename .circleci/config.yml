@@ -288,10 +288,8 @@ jobs:
       # Docker image here that supports AWS CLI
     steps:
       - checkout
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/inventory.txt
+      - attach_workspace:
+          at: ~/
       # Checkout code from git
       - run:
           name: Install dependencies
@@ -303,8 +301,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances \
-            --query 'Reservations[*].Instances[*].PublicIpAddress')
+            export BACKEND_IP= ~/project/.circleci/ansible/inventory.txt
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
