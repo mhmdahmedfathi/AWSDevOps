@@ -207,6 +207,7 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
+            cd .circleci/ansible
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:project,Values=udacity" \
@@ -232,10 +233,8 @@ jobs:
           fingerprints:
             - "62:42:d3:d4:e3:96:ec:79:09:29:7c:07:20:3a:84:68"
       # attach workspace
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/.circleci/ansible/inventory.txt
+      - attach_workspace:
+          at: ~/
       - run:
           name: install dependencies
           command: |
