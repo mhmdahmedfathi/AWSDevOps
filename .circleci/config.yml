@@ -206,28 +206,25 @@ jobs:
 
   configure-infrastructure:
     docker:
-          - image: cimg/base:2022.03
+      - image: python:3.7-alpine3.11      
       # Docker image here that supports Ansible
     steps:
       - checkout
       # Checkout code from git
       # Add ssh keys with fingerprint
       - add_ssh_keys:
-          fingerprints:
-            - "85:00:3f:0f:80:8e:49:9e:45:24:61:3d:09:8d:9e:a6"
+          fingerprints: ["85:00:3f:0f:80:8e:49:9e:45:24:61:3d:09:8d:9e:a6"]
       # attach workspace
       - attach_workspace:
           at: ~/
       - run:
           name: install dependencies
           command: |
-              sudo apt update
-              sudo apt install tar gzip awscli ansible
+              apk add --update ansible 
       - run:
           name: Configure server
           command: |
             cd .circleci/ansible
-            cat ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt configure-server.yml
       - destroy-environment:
           ID: ${CIRCLE_WORKFLOW_ID:0:7}
