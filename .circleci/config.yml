@@ -266,15 +266,14 @@ jobs:
       # Docker image here that supports AWS CLI
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
       # Checkout code from git
       - run:
           name: Install dependencies
           command: |
-            # your code here
             command: |
             yum -y install tar gzip nodejs python ansible
+      - attach_workspace:
+          at: ~/
       - run:
           name: Get backend url
           command: |
