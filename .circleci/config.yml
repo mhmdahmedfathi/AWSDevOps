@@ -270,14 +270,18 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            command: |
-            yum -y install tar gzip nodejs python ansible
+            cd frontend
+            yum install -y curl tar gzip
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install -y nodejs
+            node --version
+            npm --version
       - attach_workspace:
           at: ~/
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP= ~/project/.circleci/ansible/inventory.txt
+            export BACKEND_IP= $(~/project/.circleci/ansible/inventory.txt)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
