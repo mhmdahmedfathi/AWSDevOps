@@ -1,7 +1,14 @@
-- name: "start app.."
+  
+- name: unpack backend files
   become: true
-  shell:
-    cd backend
+  shell: 
+    cd ~/project/backend
+    tar -vxf artifact.tar.gz
+    rm -f artifact.tar.gz
+- name: start app 
+  become: true
+  shell: |
+    cd ~/backend
     npm install
     pm2 stop default
     pm2 start npm -- start
